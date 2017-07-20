@@ -1,4 +1,6 @@
 # Distribution / packaging
+.requirements/*
+*.pyc
 .Python
 env/
 .env
