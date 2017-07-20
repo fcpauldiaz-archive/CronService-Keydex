@@ -1,0 +1,14 @@
+{
+  "name": "cron-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "\"\"",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "fcpauldiaz",
+  "license": "MIT",
+  "dependencies": {
+    "serverless-python-requirements": "^2.4.1"
+  }
+}
