@@ -6,8 +6,8 @@ import psycopg2
 import settings
 from helpers import log
 
-conn = psycopg2.connect(database=settings.database, host=settings.host, user=settings.user)
-cur = conn.cursor()
+# conn = psycopg2.connect(database=settings.database, host=settings.host, user=settings.user, password=settings.password)
+# cur = conn.cursor()
 
 
 def dump_latest_scrape():

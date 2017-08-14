@@ -3,9 +3,18 @@ import os
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 # Database
-database = "amazon_crawler"
-host = "localhost"
-user = "postgres"
+
+if "DATABASE_URL" in os.environ:
+  database = os.environ['DB_NAME']                     
+  user = os.environ['DB_USER']
+  password = os.environ['DB_PASSWORD']
+  host = os.environ['DB_HOST']
+else:
+  host = "localhost"
+  user = ""
+  password = ""
+  database = "amazon_crawler"
+
 
 # Redis
 redis_host = "localhost"
@@ -55,3 +64,8 @@ max_threads = 200
 log_stdout = True
 image_dir = "/tmp/crawl_images"
 export_dir = "/tmp"
+
+AWS_KEY = "AKIAI5MZQK32FPKK35TA"
+AWS_SECRET = "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"
+AWS_API = "keydex-20"
+

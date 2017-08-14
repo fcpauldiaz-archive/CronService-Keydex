@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import random
 from datetime import datetime
@@ -6,7 +7,6 @@ from urlparse import urlparse
 import eventlet
 requests = eventlet.import_patched('requests.__init__')
 time = eventlet.import_patched('time')
-import redis
 
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
@@ -15,27 +15,36 @@ import settings
 
 num_requests = 0
 
-redis = redis.StrictRedis(host=settings.redis_host, port=settings.redis_port, db=settings.redis_db)
 
 
-def make_request(url, return_soup=True):
+def make_request(asin, host, keyword=None, return_soup=True):
     # global request building and response handling
 
-    url = format_url(url)
-    #print url
-    if "picassoRedirect" in url:
-        return None  # skip the redirect URLs
+    #url = format_url(url)
 
     global num_requests
     if num_requests >= settings.max_requests:
         raise Exception("Reached the max number of requests: {}".format(settings.max_requests))
 
-    proxies = get_proxy()
+    #proxies = get_proxy()
     try:
-        r = requests.get(url, headers=settings.headers, proxies=proxies)
+        url = host+"/s/ref=nb_sb_noss"
+        params = asin
+        if keyword != None:
+            params += " " + keyword
+        querystring = {"url":"search-alias=aps", "field-keywords": params }
+
+        headers = {
+            'cache-control': "no-cache",
+            'user-agent': random.choice(settings.USER_AGENTS)['User-Agent']
+        }
+
+        r = requests.request("GET", url, headers=headers, params=querystring)
+        print r.url
     except RequestException as e:
-        log("WARNING: Request for {} failed, trying again.".format(url))
-        return make_request(url)  # try request again, recursively
+        log("WARNING: Request for {} failed, trying again.".format(e))
+        return None
+        #return make_request(url)  # try request again, recursively
 
     num_requests += 1
 
@@ -104,6 +113,10 @@ def enqueue_url(u):
 
 def dequeue_url():
     return redis.spop("listing_url_queue")
+
+def chooseHeader(header):
+    header['User-Agent'] = random.choice(settings.USER_AGENTS)['User-Agent']
+    return header
 
 
 if __name__ == '__main__':

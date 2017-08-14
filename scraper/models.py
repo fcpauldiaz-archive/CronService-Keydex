@@ -2,8 +2,8 @@ import psycopg2
 
 import settings
 
-conn = psycopg2.connect(database=settings.database, host=settings.host)
-cur = conn.cursor()
+# conn = psycopg2.connect(database=settings.database, host=settings.host, user=settings.user, password=settings.password)
+# cur = conn.cursor()
 
 
 class ProductRecord(object):

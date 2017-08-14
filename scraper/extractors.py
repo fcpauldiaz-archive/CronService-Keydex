@@ -31,9 +31,9 @@ def get_price(item):
     price = item.find("span", "s-price")
     if price:
         return parse_price(price.text)
-    price = item.select(".a-size-base.a-color-base")[0].text.strip()
+    price = item.select(".a-size-base.a-color-base")
     if price:
-        return price
+        return price[0].text.strip()
     return ""
 
 
