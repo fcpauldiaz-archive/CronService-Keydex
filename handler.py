@@ -111,24 +111,28 @@ def hello():
     
 
     for row in rows:
-        product_id = row[0]
-        asin =  row[1]
-        keywords =  row[2]
-        reporting_percentage = row[3]
-        periodicity = row[4]
-        country_code = row[5]
-        country_host = row[6]
-        rDict = begin_crawl(asin, keywords, country_host, country_code)
-        rate = save_product_indexing(rDict, product_id, cur, conn)
-        
-        if reporting_percentage >= 100:
-            first_name, last_name, email_to = get_user_data(product_id, cur)
-            #send email
-            send_email(asin, first_name, last_name, keywords, rate, email_to)
-        elif reporting_percentage >= rate:
-            first_name, last_name, email_to = get_user_data(product_id, cur)
-            #send email
-            send_email(asin, first_name, last_name, keywords, rate, email_to)
+        try:
+            product_id = row[0]
+            asin =  row[1]
+            keywords =  row[2]
+            reporting_percentage = row[3]
+            periodicity = row[4]
+            country_code = row[5]
+            country_host = row[6]
+            rDict = begin_crawl(asin, keywords, country_host, country_code)
+            rate = save_product_indexing(rDict, product_id, cur, conn)
+            
+            if reporting_percentage >= 100:
+                first_name, last_name, email_to = get_user_data(product_id, cur)
+                #send email
+                send_email(asin, first_name, last_name, keywords, rate, email_to)
+            elif reporting_percentage >= rate:
+                first_name, last_name, email_to = get_user_data(product_id, cur)
+                #send email
+                send_email(asin, first_name, last_name, keywords, rate, email_to)
+        except:
+            #continue for next product
+            pass
         
     cur.close()
     conn.close()
