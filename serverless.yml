@@ -19,6 +19,7 @@ provider:
   runtime: python2.7
   apiKeys:
     - AWS_LAMBDA_KEY
+  profile: serverless
 
 plugins:
   - serverless-python-requirements
