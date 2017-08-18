@@ -17,6 +17,7 @@ service: cron-service
 provider:
   name: aws
   runtime: python2.7
+  region: us-west-2
   apiKeys:
     - AWS_LAMBDA_KEY
   profile: serverless

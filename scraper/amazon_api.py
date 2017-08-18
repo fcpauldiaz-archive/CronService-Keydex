@@ -3,6 +3,8 @@ from models import ProductRecord
 from datetime import datetime
 import settings
 
+#function to retrieve a product information
+#on a given marketplace
 def amazon_api(asin, url, marketplace = 'US'):
   try:
     amazon = AmazonAPI(settings.AWS_KEY, settings.AWS_SECRET, settings.AWS_API, region=marketplace)
@@ -22,7 +24,8 @@ def amazon_api(asin, url, marketplace = 'US'):
     return None
   
 
-
+#function to retrieve if a product is indexing
+#on a given marketplace with a keyword
 def amazon_product(asin, keyword, marketplace = 'US'):  
   try:
     amazon = AmazonAPI(settings.AWS_KEY, settings.AWS_SECRET, settings.AWS_API, region=marketplace)

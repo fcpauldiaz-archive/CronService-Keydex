@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import psycopg2
-from scraper.crawler import begin_crawl
+from scraper.crawler import parallel_crawl
 from jinja2 import Environment, FileSystemLoader
 from calendar import monthrange
 import logging
@@ -154,6 +154,8 @@ def hello(event, context):
                 #send email
                 send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
         except:
+            logger = logging.getLogger()
+            logger.setLevel(logging.INFO)
             logger.error('something went wrong on product {}'.format(row[0]))
             failed = True
             pass
