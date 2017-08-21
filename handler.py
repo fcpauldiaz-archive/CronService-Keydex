@@ -64,28 +64,30 @@ def save_product_indexing(result, product_id, cursor, conn):
   indexing_data = {}
   keyword_length = 0
   for keyword, indexing in result.items():
-    query = '''
-        INSERT INTO public.main_keywords
-        (id, keyword, indexing, index_date, product_id)
-        VALUES(nextval('main_keywords_id_seq'::regclass), %s, %s, %s, %s);
-    '''
-    data = (keyword, indexing, datetime.datetime.now(), product_id)
-    cursor.execute(query, data)
-    conn.commit()
-
     if (indexing == True):
       indexed += 1
     keyword_length += 1
-
   indexing_rate = float(indexed)/float(keyword_length) * 100
   query = '''
     INSERT INTO public.main_product_historic_indexing
     (id, indexing_rate, indexed_date, product_id)
-    VALUES(nextval('main_product_historic_indexing_id_seq'::regclass), %s, %s, %s);
+    VALUES(nextval('main_product_historic_indexing_id_seq'::regclass), %s, %s, %s)
+    RETURNING id;
   '''
   data = (indexing_rate, datetime.datetime.now(), product_id)
+
   #save transactional operation
   cursor.execute(query, data)
+  conn.commit()
+  historic_id = cursor.fetchone()[0]
+  for keyword, indexing in result.items():
+    query = '''
+        INSERT INTO public.main_keywords
+        (id, keyword, indexing, index_date, historic_id)
+        VALUES(nextval('main_keywords_id_seq'::regclass), %s, %s, %s, %s);
+    '''
+    data = (keyword, indexing, datetime.datetime.now(), historic_id)
+    cursor.execute(query, data)
   conn.commit()
   return indexing_rate
 
@@ -112,7 +114,7 @@ def hello(event, context):
 
     cur = conn.cursor()
     cur.execute('''
-      SELECT p.id, p.asin, p.keywords, p.reporting_percentage, r.periodicity, mrk.country_code, mrk.country_host
+        SELECT p.id, p.asin, p.keywords, p.reporting_percentage, r.periodicity, mrk.country_code, mrk.country_host
         FROM main_product p
         INNER JOIN main_reporting_period r on p.reporting_period_id = r.id
         INNER JOIN main_marketplace mrk on p.marketplace_id = mrk.id;
@@ -143,7 +145,7 @@ def hello(event, context):
                     continue
             elif (periodicity == '-1'):
                 continue
-            rDict = begin_crawl(asin, keywords, country_host, country_code)
+            rDict = parallel_crawl(asin, keywords, country_host, country_code)
             rate = save_product_indexing(rDict, product_id, cur, conn)
             if reporting_percentage >= 100:
                 first_name, last_name, email_to = get_user_data(product_id, cur)
