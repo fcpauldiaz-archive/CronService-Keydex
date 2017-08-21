@@ -92,7 +92,7 @@ def save_product_indexing(result, product_id, cursor, conn):
   return indexing_rate
 
 
-def hello(event, context):
+def hello():
     # Connect to an existing database
     if 'DB_HOST' in os.environ:
       conn = psycopg2.connect(
