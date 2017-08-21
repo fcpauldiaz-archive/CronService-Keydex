@@ -4,10 +4,13 @@ import psycopg2
 from scraper.crawler import parallel_crawl
 from jinja2 import Environment, FileSystemLoader
 from calendar import monthrange
+import unicodedata 
 import logging
 import datetime
 import requests
 import os
+
+def removeNonAscii(s): return "".join(i for i in s if ord(i)<128)
 
 def last_day_month(today):
     dict_range = monthrange(today.year, today.month)
@@ -26,24 +29,34 @@ def get_user_data(product_id, cursor):
         INNER JOIN main_product p on p.user_id = u.id
         WHERE p.id = %s;
     '''
-    cursor.execute(query, str(product_id))
+    id_string = str(product_id)
+    cursor.execute(query, (id_string,))
     rows = cursor.fetchone()
     if rows != None:
         return rows[0], rows[1], rows[2]
     return None
 
 
+
 def send_email(asin, first_name, last_name, keywords, rate, email_to):
+    keywords_sanitized = []
+    for keyword in keywords:
+        new_keyword = removeNonAscii(keyword)
+        if new_keyword != '' and new_keyword != None:
+            keywords_sanitized.append(new_keyword)
+    first_name = unicodedata.normalize('NFKD', unicode(first_name, 'utf-8')).encode('ascii','ignore')
+    last_name = unicodedata.normalize('NFKD', unicode(last_name, 'utf-8')).encode('ascii','ignore')
     env = Environment(loader=FileSystemLoader(os.path.dirname(os.path.abspath(__file__))), trim_blocks=True)
     template = env.get_template('templates/email_reporting.html')
     html = template.render(
         asin=asin, 
         first_name=first_name, 
         last_name=last_name,
-        keywords=keywords,
+        keywords=keywords_sanitized,
         rate=rate
     )
     email_format = first_name + ' ' + last_name + '<' + email_to + '>'
+
     requests.post(
         'https://api.mailgun.net/v3/mail.checkmykeywords.com/messages',
         auth=('api', 'key-65265adea3b2c11f6282b435df3c7505'),
@@ -104,10 +117,10 @@ def hello():
       )
     else:
       conn = psycopg2.connect(
-        dbname='keydex',
-        user='',
-        password='',
-        host='localhost',
+        dbname='indexer',
+        user='checkmykeywords',
+        password='9ZVwy7GVuD8P5iTbUEwRabJh6',
+        host='indexer.cjzyjdlft1jm.us-west-2.rds.amazonaws.com',
         port=5432
       )
 
@@ -124,39 +137,39 @@ def hello():
     
     failed = False
     for row in rows:
-        product_id = row[0]
-        asin =  row[1]
-        keywords =  row[2]
-        reporting_percentage = row[3]
-        periodicity = row[4]
-        country_code = row[5]
-        country_host = row[6]
-        today = datetime.date.today()
-        if (periodicity == 'monthly'):
-            #check if today is endof month
-            monthly = last_day_month(today)
-            if (monthly == False):
+        try:
+            product_id = row[0]
+            asin =  row[1]
+            keywords =  row[2]
+            reporting_percentage = row[3]
+            periodicity = row[4]
+            country_code = row[5]
+            country_host = row[6]
+            today = datetime.date.today()
+            if (periodicity == 'monthly'):
+                #check if today is endof month
+                monthly = last_day_month(today)
+                if (monthly == False):
+                    continue
+            elif (periodicity == 'weekly'):
+                #check if today is sunday
+                sunday = weekend(today)
+                if (sunday == False):
+                    continue
+            elif (periodicity == '-1'):
                 continue
-        elif (periodicity == 'weekly'):
-            #check if today is sunday
-            sunday = weekend(today)
-            if (sunday == False):
-                continue
-        elif (periodicity == '-1'):
-            continue
-        rDict = parallel_crawl(asin, keywords, country_host, country_code)
-        rate = save_product_indexing(rDict, product_id, cur, conn)
-        if reporting_percentage >= 100:
-            first_name, last_name, email_to = get_user_data(product_id, cur)
-            #send email
-            send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
-        elif reporting_percentage >= rate:
-            first_name, last_name, email_to = get_user_data(product_id, cur)
-            #send email
-            send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
-            logger = logging.getLogger()
-            logger.setLevel(logging.INFO)
-            logger.error('something went wrong on product {}'.format(row[0]))
+            rDict = parallel_crawl(asin, keywords, country_host, country_code)
+            rate = save_product_indexing(rDict, product_id, cur, conn)
+            if reporting_percentage >= 100:
+                first_name, last_name, email_to = get_user_data(product_id, cur)
+                #send email
+                send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
+            elif reporting_percentage >= rate:
+                first_name, last_name, email_to = get_user_data(product_id, cur)
+                #send email
+                send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
+        except:
+            logging.warning('something went wrong on product {}'.format(row[0]))
             failed = True
             pass
         
