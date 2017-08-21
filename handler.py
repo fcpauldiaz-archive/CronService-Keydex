@@ -124,38 +124,36 @@ def hello(event, context):
     
     failed = False
     for row in rows:
-        try:
-            product_id = row[0]
-            asin =  row[1]
-            keywords =  row[2]
-            reporting_percentage = row[3]
-            periodicity = row[4]
-            country_code = row[5]
-            country_host = row[6]
-            today = datetime.date.today()
-            if (periodicity == 'monthly'):
-                #check if today is endof month
-                monthly = last_day_month(today)
-                if (monthly == False):
-                    continue
-            elif (periodicity == 'weekly'):
-                #check if today is sunday
-                sunday = weekend(today)
-                if (sunday == False):
-                    continue
-            elif (periodicity == '-1'):
+        product_id = row[0]
+        asin =  row[1]
+        keywords =  row[2]
+        reporting_percentage = row[3]
+        periodicity = row[4]
+        country_code = row[5]
+        country_host = row[6]
+        today = datetime.date.today()
+        if (periodicity == 'monthly'):
+            #check if today is endof month
+            monthly = last_day_month(today)
+            if (monthly == False):
                 continue
-            rDict = parallel_crawl(asin, keywords, country_host, country_code)
-            rate = save_product_indexing(rDict, product_id, cur, conn)
-            if reporting_percentage >= 100:
-                first_name, last_name, email_to = get_user_data(product_id, cur)
-                #send email
-                send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
-            elif reporting_percentage >= rate:
-                first_name, last_name, email_to = get_user_data(product_id, cur)
-                #send email
-                send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
-        except:
+        elif (periodicity == 'weekly'):
+            #check if today is sunday
+            sunday = weekend(today)
+            if (sunday == False):
+                continue
+        elif (periodicity == '-1'):
+            continue
+        rDict = parallel_crawl(asin, keywords, country_host, country_code)
+        rate = save_product_indexing(rDict, product_id, cur, conn)
+        if reporting_percentage >= 100:
+            first_name, last_name, email_to = get_user_data(product_id, cur)
+            #send email
+            send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
+        elif reporting_percentage >= rate:
+            first_name, last_name, email_to = get_user_data(product_id, cur)
+            #send email
+            send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
             logger = logging.getLogger()
             logger.setLevel(logging.INFO)
             logger.error('something went wrong on product {}'.format(row[0]))
@@ -165,17 +163,8 @@ def hello(event, context):
     cur.close()
     conn.close()
 
-    body = {
-        "message": failed,
-        "input": event
-    }
-
-    response = {
-        "statusCode": 200,
-        "body": json.dumps(body)
-    }
-
-    return response
+    print "Finish execution", failed
+    return
 
     # Use this code if you don't use the http event with the LAMBDA-PROXY integration
     """
