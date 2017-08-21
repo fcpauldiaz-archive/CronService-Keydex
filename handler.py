@@ -173,3 +173,5 @@ def hello(event, context):
         "event": event
     }
     """
+#call function
+hello()
