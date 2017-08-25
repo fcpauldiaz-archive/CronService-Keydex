@@ -131,7 +131,7 @@ def hello():
         user_id = user[0]
         user_first_name = user[1]
         user_last_name = user[2]
-        user_email =user[3]
+        user_email = user[3]
         asins_to_email = []
 
         query_products = ('''

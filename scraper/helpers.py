@@ -40,7 +40,7 @@ def make_request(asin, host, keyword=None, return_soup=True):
         #print r.url
     except RequestException as e:
         log("WARNING: Request for {} failed, trying again.".format(url))
-        return None
+        return None, None
         #return make_request(url)  # try request again, recursively
 
     num_requests += 1
@@ -48,7 +48,7 @@ def make_request(asin, host, keyword=None, return_soup=True):
     if r.status_code != 200:
         os.system('say "Got non-200 Response"')
         log("WARNING: Got a {} status code for URL: {}".format(r.status_code, url))
-        return None
+        return None, None
 
     if return_soup:
         return BeautifulSoup(r.content, 'lxml'), r.content
