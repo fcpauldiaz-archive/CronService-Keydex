@@ -42,7 +42,6 @@ def make_request(asin, host, keyword=None, return_soup=True):
             'user-agent': random.choice(settings.USER_AGENTS)['User-Agent']
         }
         r = requests.request("GET", url, headers=headers, params=querystring, proxies=get_proxy())
-        print r.url
     except RequestException as e:
         log("WARNING: Request for {} {} failed, trying again.".format(url, querystring))
         log(e.message)
