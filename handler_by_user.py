@@ -180,10 +180,11 @@ def hello():
             except Exception, e:
                 logging.warning('something went wrong on product {} {}'.format(row[0], e.message))
                 failed = True
-                pass
         #send only one mail for all asins
         if len(asins_to_email) != 0:
+            print 'Sending email ' + user_email
             send_email(asins_to_email, user_first_name, user_last_name, user_email)
+            asins_to_email = []
     cur.close()
     conn.close()
 
