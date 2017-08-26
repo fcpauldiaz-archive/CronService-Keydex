@@ -15,7 +15,7 @@ def begin_crawl(asin, keyword, country_host, country_code, retries, output):
     page, html = make_request(asin=asin, host=country_host, keyword=keyword)
     if page == None:
         log("WARNING: Error in {} found in the extraction. keyword {}".format(asin, keyword))
-        sleep(2)
+        sleep(2+retries)
         if (retries < 3):
             return begin_crawl(asin, keyword, country_host, country_code, retries+1, output)
         product_indexing = amazon_product(asin, keyword, country_code)
