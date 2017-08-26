@@ -177,8 +177,8 @@ def hello():
                 elif reporting_percentage >= rate:
                     #save in memory for email later
                     asins_to_email.append(asin)
-            except:
-                logging.warning('something went wrong on product {}'.format(row[0]))
+            except Exception, e:
+                logging.warning('something went wrong on product {} {}'.format(row[0], e.message))
                 failed = True
                 pass
         #send only one mail for all asins

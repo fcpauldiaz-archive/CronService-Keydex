@@ -168,8 +168,8 @@ def hello():
                 first_name, last_name, email_to = get_user_data(product_id, cur)
                 #send email
                 send_email(asin, first_name, last_name, keywords, format(rate, '.2f'), email_to)
-        except:
-            logging.warning('something went wrong on product {}'.format(row[0]))
+        except Exception, e:
+            logging.warning('something went wrong on product {} {}'.format(row[0], e.message))
             failed = True
             pass
         

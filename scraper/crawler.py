@@ -14,10 +14,10 @@ def begin_crawl(asin, keyword, country_host, country_code, retries, output):
     returnDictionary = {}
     page, html = make_request(asin=asin, host=country_host, keyword=keyword)
     if page == None:
-        log("WARNING: Error in {} found in the extraction. keyword {}".format(product.asin, keyword))
+        log("WARNING: Error in {} found in the extraction. keyword {}".format(asin, keyword))
         sleep(2)
         if (retries < 3):
-            return begin_crawl(asin, marketplace, keyword, retries + 1, output)
+            return begin_crawl(asin, keyword, country_host, country_code, retries+1, output)
         product_indexing = amazon_product(asin, keyword, country_code)
         returnDictionary[keyword] = product_indexing
     else:    
@@ -30,7 +30,7 @@ def parallel_crawl(asin, keywords, country_host, country_code):
     # Define an output queue
     output_queue = mp.Queue()
     # Setup a list of processes that we want to run
-    processes = [mp.Process(target=begin_crawl, args=(asin, keyword, country_host, country_code, 0, output_queue)) for keyword in product.keywords]
+    processes = [mp.Process(target=begin_crawl, args=(asin, keyword, country_host, country_code, 0, output_queue)) for keyword in keywords]
     #intial_time = time()
     # Run processes
     for p in processes:
