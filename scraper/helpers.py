@@ -12,7 +12,12 @@ import settings
 
 num_requests = 0
 
-#redis = redis.StrictRedis(host=settings.redis_host, port=settings.redis_port, db=settings.redis_db)
+def get_proxy():
+    # choose a proxy server to use for this request, if we need one
+    return {
+        "http": "83.149.70.159:13012",
+        "https": "83.149.70.159:13012"
+    }
 
 
 def make_request(asin, host, keyword=None, return_soup=True):
@@ -36,10 +41,11 @@ def make_request(asin, host, keyword=None, return_soup=True):
             'cache-control': "no-cache",
             'user-agent': random.choice(settings.USER_AGENTS)['User-Agent']
         }
-        r = requests.request("GET", url, headers=headers, params=querystring)
-        #print r.url
+        r = requests.request("GET", url, headers=headers, params=querystring, proxies=get_proxy())
+        print r.url
     except RequestException as e:
-        log("WARNING: Request for {} failed, trying again.".format(url))
+        log("WARNING: Request for {} {} failed, trying again.".format(url, querystring))
+        log(e.message)
         return None, None
         #return make_request(url)  # try request again, recursively
 
@@ -84,23 +90,6 @@ def log(msg):
             pass  # squash logging errors in case of non-ascii text
 
 
-def get_proxy():
-    # choose a proxy server to use for this request, if we need one
-    if not settings.proxies or len(settings.proxies) == 0:
-        return None
-
-    proxy_ip = random.choice(settings.proxies)
-    proxy_url = "socks5://{user}:{passwd}@{ip}:{port}/".format(
-        user=settings.proxy_user,
-        passwd=settings.proxy_pass,
-        ip=proxy_ip,
-        port=settings.proxy_port,
-
-    )
-    return {
-        "http": proxy_url,
-        "https": proxy_url
-    }
 
 
 def enqueue_url(u):
